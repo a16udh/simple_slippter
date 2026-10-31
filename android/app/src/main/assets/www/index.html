@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f2f2f7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Split" />
+  <title>Split — Apple-Style Expense Splitter</title>
+  
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- App Shell Frame -->
+  <div id="app">
+
+    <!-- Sticky iOS Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon"></div>
+        <div>
+          <span class="brand-title">Split</span>
+          <span class="brand-badge">Pro</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Currency Selector -->
+        <div class="currency-selector" role="group" aria-label="Currency">
+          <button type="button" class="currency-chip active" data-curr="₹">₹</button>
+          <button type="button" class="currency-chip" data-curr="$">$</button>
+          <button type="button" class="currency-chip" data-curr="€">€</button>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button type="button" id="themeToggleBtn" class="icon-btn" aria-label="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Main Views Container -->
+    <main class="views-container">
+
+      <!-- View 1: Group Split / Multi-Trip View -->
+      <section id="groupView" class="view-section active">
+
+        <!-- Trip Switcher Carousel -->
+        <div class="trip-tabs-scroll" id="tripTabsContainer"></div>
+
+        <!-- Hero Card (Total Spend & Group Balance) -->
+        <div class="hero-card" style="margin-top: 14px;">
+          <div class="hero-subtitle" id="heroTripTitle">Trip · Total Spend</div>
+          <div class="hero-amount-wrapper">
+            <span class="hero-currency" id="heroCurrencySymbol">₹</span>
+            <span class="hero-amount" id="heroTotalSpend">0.00</span>
+          </div>
+          <div class="hero-meta-row">
+            <span id="heroMemberCount">3 friends</span>
+            <span class="hero-pill">Tap Settle to clear debt</span>
+          </div>
+        </div>
+
+        <!-- People In This Trip Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 Friends in Trip</span>
+          </div>
+          <div class="members-list" id="tripMembersContainer"></div>
+        </div>
+
+        <!-- Who Owes Whom (Settlements) Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⚖️ Who Owes Whom</span>
+            <span style="font-size: 11px; color: var(--text-tertiary);">Minimal Transfers</span>
+          </div>
+          <div id="settlementsListContainer"></div>
+        </div>
+
+      </section>
+
+      <!-- View 2: Expense History -->
+      <section id="historyView" class="view-section">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🧾 Expense Log</span>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="card-action-link" id="exportCsvBtn">Export CSV</button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <input type="text" id="expenseSearchInput" class="input-field" placeholder="🔍 Search note or person..." />
+          </div>
+
+          <div id="expenseHistoryContainer"></div>
+        </div>
+      </section>
+
+      <!-- View 3: Quick Bill Calculator -->
+      <section id="quickView" class="view-section">
+
+        <!-- Per Person Hero Result -->
+        <div class="hero-card">
+          <div class="hero-subtitle">Each Person Pays</div>
+          <div class="hero-amount-wrapper">
+            <span class="hero-currency">₹</span>
+            <span class="hero-amount" id="quickPerPersonDisplay">0.00</span>
+          </div>
+          <div class="hero-meta-row">
+            <span>Bill: <strong id="quickSubtotalDisplay">₹0</strong></span>
+            <span>Tip & Tax: <strong id="quickTaxTipDisplay">₹0</strong></span>
+          </div>
+        </div>
+
+        <!-- Calculator Controls Card -->
+        <div class="card">
+          <!-- Bill Amount -->
+          <div class="form-group">
+            <label class="form-label">Total Bill Amount</label>
+            <div class="amount-input-box">
+              <span class="amount-symbol">₹</span>
+              <input type="number" id="quickBillInput" placeholder="0.00" inputmode="decimal" />
+            </div>
+          </div>
+
+          <!-- Tip Percentage Dial -->
+          <div class="form-group">
+            <label class="form-label">Tip Percentage</label>
+            <div class="quick-dial-grid">
+              <button type="button" class="tip-chip" data-tip="0">0%</button>
+              <button type="button" class="tip-chip active" data-tip="10">10%</button>
+              <button type="button" class="tip-chip" data-tip="15">15%</button>
+              <button type="button" class="tip-chip" data-tip="20">20%</button>
+            </div>
+          </div>
+
+          <!-- Split Stepper -->
+          <div class="form-group">
+            <label class="form-label">Split Between</label>
+            <div class="stepper-control">
+              <button type="button" id="splitMinusBtn" class="stepper-btn">−</button>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="quickSplitCount" class="stepper-val">3</span>
+                <span style="font-size: 13px; color: var(--text-secondary);">people</span>
+              </div>
+              <button type="button" id="splitPlusBtn" class="stepper-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- View 4: Saved Friends & Settings -->
+      <section id="friendsView" class="view-section">
+        
+        <!-- Saved Contacts Directory -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📖 Saved Friends Directory</span>
+          </div>
+          <div id="friendsDirectoryList"></div>
+        </div>
+
+        <!-- Data Management & Backup -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">💾 Data Storage & Backup</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+            All your trips, expenses, and friend directories are stored locally on your device.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button type="button" id="exportBackupBtn" class="btn-secondary">📁 Download Backup (JSON)</button>
+            <button type="button" id="resetDataBtn" class="btn-secondary" style="color: var(--danger);">🧹 Reset & Clean All Data</button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Floating Action Button (Quick Add Expense) -->
+    <button type="button" id="fabAddExpense" class="fab-btn" aria-label="Add Expense">+</button>
+
+    <!-- Bottom Tab Navigation Bar (iOS Style) -->
+    <nav class="bottom-tab-bar" aria-label="Main Navigation">
+      <button type="button" class="nav-tab-btn active" data-view="groupView">
+        <span class="nav-tab-icon">👥</span>
+        <span class="nav-tab-label">Trips</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" data-view="historyView">
+        <span class="nav-tab-icon">🧾</span>
+        <span class="nav-tab-label">Activity</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" data-view="quickView">
+        <span class="nav-tab-icon">⚡</span>
+        <span class="nav-tab-label">Calculator</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" data-view="friendsView">
+        <span class="nav-tab-icon">⚙️</span>
+        <span class="nav-tab-label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- MODAL 1: Add Expense Bottom Sheet -->
+    <div id="addExpenseModal" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-header">
+          <h2 class="sheet-title">Add Expense</h2>
+          <button type="button" class="icon-btn" data-close-modal="addExpenseModal">✕</button>
+        </div>
+
+        <form id="addExpenseForm">
+          <!-- Category Picker -->
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <div class="category-scroller" id="expenseCategoryScroller"></div>
+          </div>
+
+          <!-- Amount -->
+          <div class="form-group">
+            <label class="form-label">Amount</label>
+            <div class="amount-input-box">
+              <span class="amount-symbol">₹</span>
+              <input type="number" id="expenseAmountInput" placeholder="0.00" inputmode="decimal" required />
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label">Description / Note</label>
+            <input type="text" id="expenseDescInput" class="input-field" placeholder="e.g. Dinner, Uber, Groceries" required />
+          </div>
+
+          <!-- Paid By -->
+          <div class="form-group">
+            <label class="form-label">Paid By</label>
+            <select id="expensePayerSelect" class="input-field"></select>
+          </div>
+
+          <!-- Split With -->
+          <div class="form-group">
+            <label class="form-label">Split With</label>
+            <div id="expenseSplitWithContainer" style="display: flex; flex-direction: column; gap: 8px; background: var(--bg-tertiary); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);"></div>
+          </div>
+
+          <button type="submit" class="btn-primary" style="margin-top: 18px;">Save Expense</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 2: Add Friend to Trip Bottom Sheet -->
+    <div id="addFriendModal" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-header">
+          <h2 class="sheet-title">Add Friend</h2>
+          <button type="button" class="icon-btn" data-close-modal="addFriendModal">✕</button>
+        </div>
+
+        <form id="addFriendForm">
+          <!-- Quick Friend Picker from Directory -->
+          <div id="quickFriendPills" style="margin-bottom: 16px;"></div>
+
+          <div class="form-group">
+            <label class="form-label">Or Enter New Friend Name</label>
+            <input type="text" id="newFriendNameInput" class="input-field" placeholder="e.g. Priya, Rohit, Mike" required />
+          </div>
+
+          <button type="submit" class="btn-primary">Add Friend</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 3: New Trip Bottom Sheet -->
+    <div id="newTripModal" class="modal-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-header">
+          <h2 class="sheet-title">Create New Trip / Tab</h2>
+          <button type="button" class="icon-btn" data-close-modal="newTripModal">✕</button>
+        </div>
+
+        <form id="newTripForm">
+          <div class="form-group">
+            <label class="form-label">Trip or Group Name</label>
+            <input type="text" id="newTripTitleInput" class="input-field" placeholder="e.g. Manali Vacation, Flat 402, Party" required />
+          </div>
+
+          <button type="submit" class="btn-primary">Create Trip</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Register Service Worker for 100% offline support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => {
+          console.log('ServiceWorker registration error:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

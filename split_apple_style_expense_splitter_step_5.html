@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Split — Apple-Style Expense Splitter (Step 5)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+      background: radial-gradient(circle at top, #eef2ff 0%, #f5f5f7 55%, #ececf1 100%);
+      color: #1d1d1f;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    .ios-card {
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+    .ios-hero {
+      background: linear-gradient(145deg, #1d1d1f 0%, #2c2c2e 100%);
+      box-shadow: 0 18px 38px -12px rgba(29, 29, 31, 0.35);
+    }
+    .ios-segment {
+      background: rgba(118, 118, 128, 0.12);
+    }
+    .ios-segment-btn {
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .ios-segment-btn.active {
+      background: #ffffff;
+      color: #1d1d1f;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+      font-weight: 600;
+    }
+
+    /* Apple Dark Mode Overrides */
+    body.dark-theme {
+      color-scheme: dark;
+      background: radial-gradient(circle at top, #1e1b4b 0%, #09090b 55%, #000000 100%);
+      color: #f5f5f7;
+    }
+    body.dark-theme .ios-card {
+      background: rgba(28, 28, 30, 0.86);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.5);
+    }
+    body.dark-theme .ios-segment {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    body.dark-theme .ios-segment-btn {
+      color: #a1a1aa;
+    }
+    body.dark-theme .ios-segment-btn.active {
+      background: #3a3a3c;
+      color: #ffffff;
+    }
+    body.dark-theme .text-gray-900,
+    body.dark-theme .text-gray-800 {
+      color: #f5f5f7 !important;
+    }
+    body.dark-theme .text-gray-700,
+    body.dark-theme .text-gray-600 {
+      color: #d4d4d8 !important;
+    }
+    body.dark-theme .text-gray-500,
+    body.dark-theme .text-gray-400 {
+      color: #a1a1aa !important;
+    }
+    body.dark-theme .bg-gray-100\/90,
+    body.dark-theme .bg-gray-100\/80,
+    body.dark-theme .bg-gray-100\/70,
+    body.dark-theme .bg-gray-100,
+    body.dark-theme .bg-white\/90,
+    body.dark-theme .bg-white\/80 {
+      background-color: rgba(44, 44, 46, 0.88) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="min-h-screen py-6 px-4 sm:py-10 flex flex-col items-center justify-start">
+
+  <!-- App Container -->
+  <main class="w-full max-w-md mx-auto space-y-5">
+
+    <!-- Top Navigation Bar (Apple Header Style) -->
+    <header class="flex items-center justify-between px-1 gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h1 class="text-xl font-bold tracking-tight text-gray-900">Split</h1>
+            <span id="stepBadge" class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Step 5</span>
+            <span id="autoSaveBadge" class="text-[10px] font-medium text-gray-400">✓ Auto-saved</span>
+          </div>
+          <p id="headerSubtitle" class="text-xs text-gray-500 truncate">Multi-Trip Workspaces &amp; Spotlight Search</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Dark Mode Toggle + Currency Selector -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button
+          type="button"
+          id="darkModeToggleBtn"
+          title="Toggle Apple Dark Mode"
+          aria-label="Toggle dark mode"
+          class="w-8 h-8 rounded-xl ios-segment flex items-center justify-center text-sm hover:opacity-80 active:scale-95 transition"
+        >
+          <span id="darkModeIcon">🌙</span>
+        </button>
+
+        <div class="flex items-center gap-1 ios-segment p-1 rounded-xl" role="group" aria-label="Currency selector">
+          <button type="button" data-currency="₹" class="currency-btn ios-segment-btn active text-xs px-2 py-1 rounded-lg">₹</button>
+          <button type="button" data-currency="$" class="currency-btn ios-segment-btn text-xs px-2 py-1 rounded-lg text-gray-600">$</button>
+          <button type="button" data-currency="€" class="currency-btn ios-segment-btn text-xs px-2 py-1 rounded-lg text-gray-600">€</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mode Switcher (Group Tab vs Quick Split) -->
+    <nav class="ios-segment p-1 rounded-2xl grid grid-cols-2 gap-1" aria-label="App Mode">
+      <button
+        type="button"
+        id="modeGroupBtn"
+        class="ios-segment-btn active py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5"
+      >
+        <span>👥 Group Split</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">New</span>
+      </button>
+      <button
+        type="button"
+        id="modeQuickBtn"
+        class="ios-segment-btn py-2 rounded-xl text-xs font-medium text-gray-600 flex items-center justify-center gap-1.5"
+      >
+        <span>⚡ Quick Bill Calculator</span>
+      </button>
+    </nav>
+
+    <!-- ========================================================= -->
+    <!-- VIEW 2: GROUP EXPENSE TRACKER (STEPS 2, 3, 4 & 5)         -->
+    <!-- ========================================================= -->
+    <div id="groupSplitView" class="space-y-5">
+
+      <!-- Step 5: Multi-Trip / Event Switcher Bar -->
+      <section class="ios-card rounded-3xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Active Trip / Tab</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Step 5</span>
+          </div>
+          <button
+            type="button"
+            id="toggleNewGroupFormBtn"
+            class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-full transition"
+          >
+            + New Trip
+          </button>
+        </div>
+
+        <!-- Trip Pills Container -->
+        <div id="tripTabsContainer" class="flex items-center gap-1.5 flex-wrap"></div>
+
+        <!-- Create New Trip Inline Form (Hidden by default) -->
+        <form id="createTripForm" class="hidden flex items-center gap-2 pt-1">
+          <input
+            id="newTripNameInput"
+            type="text"
+            maxlength="24"
+            placeholder="Trip name (e.g. Munnar Weekend)"
+            class="flex-1 bg-gray-100/90 focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-2xl px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none transition"
+          />
+          <button
+            type="submit"
+            id="saveNewTripBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2 rounded-2xl transition shrink-0"
+          >
+            Create
+          </button>
+        </form>
+      </section>
+
+      <!-- Group Hero Summary Card -->
+      <section class="ios-hero rounded-3xl p-6 text-white relative overflow-hidden">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p id="activeTripHeroLabel" class="text-xs uppercase tracking-widest text-blue-300 font-semibold">🍕 Dinner Night · Total Spend</p>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="groupHeroCurrency" class="text-3xl font-semibold text-blue-400">₹</span>
+              <span id="groupTotalSpendDisplay" class="text-5xl font-bold tracking-tight">0.00</span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-1.5">
+            <span id="groupMemberCountBadge" class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-gray-200 backdrop-blur-sm">
+              3 friends
+            </span>
+            <button
+              type="button"
+              id="openReceiptModalBtn"
+              class="text-[11px] font-semibold px-3 py-1 rounded-full bg-blue-500/25 hover:bg-blue-500/40 text-blue-200 border border-blue-400/30 transition active:scale-95"
+            >
+              🧾 View Receipt &amp; Export
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-white/10 grid grid-cols-2 gap-3">
+          <div class="bg-white/5 rounded-2xl py-2.5 px-3">
+            <p class="text-[11px] text-gray-400">Average Per Person</p>
+            <p id="groupAvgPerPersonDisplay" class="text-sm font-semibold mt-0.5 text-blue-300">₹0.00</p>
+          </div>
+          <div class="bg-white/5 rounded-2xl py-2.5 px-3">
+            <p class="text-[11px] text-gray-400">Expenses Logged</p>
+            <p id="groupExpenseCountDisplay" class="text-sm font-semibold mt-0.5 text-emerald-300">2 items</p>
+          </div>
+        </div>
+
+        <!-- Step 3 Category Breakdown Bar inside Hero -->
+        <div class="mt-4 pt-3 border-t border-white/10 space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-gray-400">
+            <span>Spending by Category</span>
+            <span id="topCategoryLabel" class="text-gray-300 font-medium">🍕 Food</span>
+          </div>
+          <div id="categoryProgressBar" class="w-full h-2 rounded-full bg-white/10 overflow-hidden flex"></div>
+          <div id="categoryLegendContainer" class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-300"></div>
+        </div>
+      </section>
+
+      <!-- Section 1: Friends / Group Members -->
+      <section class="ios-card rounded-3xl p-5 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500">1. People in Group</h2>
+            <p class="text-xs text-gray-400">Add friends sharing expenses</p>
+          </div>
+          <button
+            type="button"
+            id="loadSampleTripBtn"
+            class="text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-full transition"
+          >
+            Reset Sample Trip
+          </button>
+        </div>
+
+        <!-- Member Pills Container -->
+        <div id="memberPillsContainer" class="flex flex-wrap gap-2"></div>
+
+        <!-- Add New Friend Input -->
+        <form id="addMemberForm" class="flex items-center gap-2 pt-1">
+          <input
+            id="newMemberInput"
+            type="text"
+            maxlength="18"
+            placeholder="Add friend's name (e.g. Rohan)"
+            class="flex-1 bg-gray-100/90 focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-2xl px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition"
+          />
+          <button
+            type="submit"
+            id="addMemberBtn"
+            class="bg-gray-900 hover:bg-gray-800 active:scale-95 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl transition shrink-0"
+          >
+            + Add Friend
+          </button>
+        </form>
+        <p id="memberFeedbackMsg" class="hidden text-xs text-amber-600 font-medium"></p>
+      </section>
+
+      <!-- Section 2: Log an Expense (Equal / Exact / % Split Modes) -->
+      <section class="ios-card rounded-3xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500">2. Add an Expense</h2>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Step 4: Custom Splits</span>
+        </div>
+
+        <form id="addExpenseForm" class="space-y-3.5">
+          <!-- Category Selector Pills -->
+          <div>
+            <span class="block text-[11px] font-medium text-gray-500 mb-1.5">Category</span>
+            <div id="categoryButtonsContainer" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
+            <div class="sm:col-span-3">
+              <label for="groupExpenseDescInput" class="block text-[11px] font-medium text-gray-500 mb-1">What was it for?</label>
+              <input
+                id="groupExpenseDescInput"
+                type="text"
+                maxlength="36"
+                placeholder="e.g. Dinner, Cab, Tickets"
+                class="w-full bg-gray-100/90 focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-2xl px-3.5 py-2.5 text-sm font-medium text-gray-900 placeholder-gray-400 focus:outline-none transition"
+              />
+            </div>
+            <div class="sm:col-span-2">
+              <label for="groupExpenseAmountInput" class="block text-[11px] font-medium text-gray-500 mb-1">Amount</label>
+              <div class="flex items-center bg-gray-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500 rounded-2xl px-3.5 py-2.5 transition">
+                <span id="expenseFormCurrency" class="text-sm font-semibold text-gray-400 mr-1.5">₹</span>
+                <input
+                  id="groupExpenseAmountInput"
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  placeholder="0.00"
+                  class="w-full bg-transparent text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Who Paid Selector -->
+          <div>
+            <span class="block text-[11px] font-medium text-gray-500 mb-1.5">Paid by</span>
+            <div id="payerButtonsContainer" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <!-- Step 4: How to Split Segmented Control (Equal / Exact / Percentage) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-medium text-gray-500">How should we split this?</span>
+              <button
+                type="button"
+                id="selectAllParticipantsBtn"
+                class="text-[11px] font-semibold text-blue-600 hover:underline"
+              >
+                Select All
+              </button>
+            </div>
+            <div class="ios-segment p-1 rounded-2xl grid grid-cols-3 gap-1 mb-2.5" role="group" aria-label="Split method">
+              <button type="button" data-split-type="equal" class="split-type-btn ios-segment-btn active py-1.5 rounded-xl text-xs font-medium">Equal (=)</button>
+              <button type="button" data-split-type="exact" class="split-type-btn ios-segment-btn py-1.5 rounded-xl text-xs font-medium text-gray-600">Exact (₹/$)</button>
+              <button type="button" data-split-type="percent" class="split-type-btn ios-segment-btn py-1.5 rounded-xl text-xs font-medium text-gray-600">Percent (%)</button>
+            </div>
+
+            <!-- Equal Split Pills -->
+            <div id="splitAmongContainer" class="flex flex-wrap gap-1.5"></div>
+
+            <!-- Custom Split Inputs Container (Shown when Exact or Percent is active) -->
+            <div id="customSplitInputsContainer" class="hidden mt-2.5 bg-gray-100/80 rounded-2xl p-3 space-y-2">
+              <div class="flex items-center justify-between text-[11px]">
+                <span id="customSplitPromptLabel" class="font-semibold text-gray-700">Enter exact amount per person:</span>
+                <span id="customSplitStatusBadge" class="font-bold text-blue-600"></span>
+              </div>
+              <div id="customSplitRowsContainer" class="space-y-1.5"></div>
+            </div>
+          </div>
+
+          <p id="expenseFormError" class="hidden text-xs text-rose-600 font-medium"></p>
+
+          <button
+            type="submit"
+            id="submitExpenseBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-sm py-3 rounded-2xl shadow-md shadow-blue-600/15 transition"
+          >
+            + Add to Group Tab
+          </button>
+        </form>
+      </section>
+
+      <!-- Section 3: Who Owes Whom (Apple Cash Style + Interactive Settle & Math Breakdown) -->
+      <section class="ios-card rounded-3xl p-5 space-y-4 ring-1 ring-blue-500/15">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-900">3. Who Owes Whom</h2>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Interactive</span>
+            </div>
+            <p class="text-xs text-gray-500">Tap "Settle ✓" when a friend pays you back</p>
+          </div>
+          <button
+            type="button"
+            id="copyGroupSettlementBtn"
+            class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 px-3 py-1.5 rounded-full transition"
+          >
+            Copy Settlement
+          </button>
+        </div>
+
+        <!-- Transfers List (With Avatar Badges + One-Tap Settle Button) -->
+        <div id="settlementListContainer" class="space-y-2.5"></div>
+
+        <!-- Completed Settlements Log (Shows when user clicks Settle ✓) -->
+        <div id="settledHistorySection" class="hidden pt-2 border-t border-gray-200/60 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Paid &amp; Settled</span>
+            <button type="button" id="undoSettlementsBtn" class="text-[11px] text-gray-500 hover:text-gray-800 underline">Undo settlements</button>
+          </div>
+          <div id="settledPaymentsContainer" class="space-y-1.5"></div>
+        </div>
+
+        <!-- Individual Net Balances -->
+        <div class="pt-3 border-t border-gray-200/60">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Net Balance Per Person</p>
+            <button
+              type="button"
+              id="toggleMathBreakdownBtn"
+              class="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+            >
+              Show How Math Works ▼
+            </button>
+          </div>
+          <div id="netBalancesContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+
+          <!-- Step-by-Step Math Breakdown Table (Explains Paid vs Fair Share) -->
+          <div id="mathBreakdownPanel" class="hidden mt-3 bg-gray-100/90 rounded-2xl p-3.5 space-y-2.5 text-xs">
+            <p class="font-semibold text-gray-800">How "Who Owes Whom" is calculated:</p>
+            <p class="text-[11px] text-gray-600 leading-relaxed">
+              For each person, the app takes <strong class="text-gray-900">Total Paid</strong> minus their <strong class="text-gray-900">Fair Share</strong>:
+            </p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-[11px] border-collapse">
+                <thead>
+                  <tr class="border-b border-gray-200 text-gray-500">
+                    <th class="py-1 font-semibold">Friend</th>
+                    <th class="py-1 font-semibold text-right">Paid</th>
+                    <th class="py-1 font-semibold text-right">Fair Share</th>
+                    <th class="py-1 font-semibold text-right">Net</th>
+                  </tr>
+                </thead>
+                <tbody id="mathBreakdownTableBody" class="divide-y divide-gray-200/60"></tbody>
+              </table>
+            </div>
+            <p class="text-[11px] text-gray-500">
+              Anyone with a <span class="text-rose-600 font-semibold">negative (−)</span> balance pays anyone with a <span class="text-emerald-600 font-semibold">positive (+)</span> balance!
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Logged Expenses Feed (Upgraded in Step 5 with Spotlight Search & Category Filter) -->
+      <section class="ios-card rounded-3xl p-5 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500">4. Expense History</h2>
+            <span id="filteredSubtotalBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600"></span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              id="exportCsvBtn"
+              class="text-xs font-semibold text-blue-600 hover:text-blue-700 transition"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              id="clearExpensesBtn"
+              class="text-xs font-medium text-rose-600 hover:text-rose-700 transition"
+            >
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 5: Apple Spotlight Search & Category Filter Pills -->
+        <div class="space-y-2">
+          <div class="relative flex items-center bg-gray-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500 rounded-2xl px-3.5 py-2 transition">
+            <span class="text-xs text-gray-400 mr-2">🔍</span>
+            <input
+              id="expenseSearchInput"
+              type="text"
+              placeholder="Search expenses or payer name..."
+              class="w-full bg-transparent text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none"
+            />
+            <button
+              type="button"
+              id="clearSearchBtn"
+              class="hidden text-xs text-gray-400 hover:text-gray-600 font-bold px-1"
+              title="Clear search"
+            >
+              ×
+            </button>
+          </div>
+
+          <div id="historyFilterPillsContainer" class="flex items-center gap-1.5 flex-wrap"></div>
+        </div>
+
+        <div id="expenseHistoryContainer" class="space-y-2"></div>
+      </section>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- VIEW 1: QUICK BILL & TIP CALCULATOR (STEP 1 PRESERVED)    -->
+    <!-- ========================================================= -->
+    <div id="quickSplitView" class="hidden space-y-5">
+
+      <!-- Live Result Hero Card (Apple Wallet / Card Style) -->
+      <section class="ios-hero rounded-3xl p-6 text-white relative overflow-hidden">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Each Person Pays</p>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="heroCurrency" class="text-3xl font-semibold text-blue-400">₹</span>
+              <span id="perPersonDisplay" class="text-5xl font-bold tracking-tight">0.00</span>
+            </div>
+          </div>
+          <span id="splitBadge" class="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-gray-200 backdrop-blur-sm">
+            2 people
+          </span>
+        </div>
+
+        <!-- Sub-breakdown inside Hero Card -->
+        <div class="mt-6 pt-4 border-t border-white/10 grid grid-cols-3 gap-2 text-center">
+          <div class="bg-white/5 rounded-2xl py-2.5 px-2">
+            <p class="text-[11px] text-gray-400">Bill</p>
+            <p id="billSummaryDisplay" class="text-sm font-semibold mt-0.5">₹0.00</p>
+          </div>
+          <div class="bg-white/5 rounded-2xl py-2.5 px-2">
+            <p class="text-[11px] text-gray-400">Tip / Tax</p>
+            <p id="tipSummaryDisplay" class="text-sm font-semibold mt-0.5 text-blue-300">₹0.00</p>
+          </div>
+          <div class="bg-white/5 rounded-2xl py-2.5 px-2">
+            <p class="text-[11px] text-gray-400">Total</p>
+            <p id="totalSummaryDisplay" class="text-sm font-semibold mt-0.5 text-emerald-300">₹0.00</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Sample Presets -->
+      <section class="flex items-center justify-between gap-2 px-1">
+        <span class="text-xs font-medium text-gray-500">Try a sample:</span>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button type="button" id="presetPizza" class="text-xs font-medium px-3 py-1.5 rounded-full bg-white/80 hover:bg-white text-gray-700 border border-gray-200/80 shadow-sm transition active:scale-95">
+            🍕 Pizza Night (1,200 · 4)
+          </button>
+          <button type="button" id="presetCoffee" class="text-xs font-medium px-3 py-1.5 rounded-full bg-white/80 hover:bg-white text-gray-700 border border-gray-200/80 shadow-sm transition active:scale-95">
+            ☕ Coffee Run (450 · 3)
+          </button>
+        </div>
+      </section>
+
+      <!-- Main Input Card (iOS Grouped Inset Style) -->
+      <section class="ios-card rounded-3xl p-5 space-y-5">
+
+        <!-- 1. Bill Amount Input -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="billInput" class="text-xs font-semibold uppercase tracking-wider text-gray-500">Bill Total</label>
+            <input
+              id="expenseTitleInput"
+              type="text"
+              placeholder="Add note (e.g. Dinner)"
+              maxlength="32"
+              class="text-xs text-right bg-transparent text-gray-600 placeholder-gray-400 focus:outline-none focus:text-blue-600"
+            />
+          </div>
+          <div class="relative flex items-center bg-gray-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500 rounded-2xl px-4 py-3 transition">
+            <span id="inputCurrencySymbol" class="text-2xl font-semibold text-gray-400 mr-2">₹</span>
+            <input
+              id="billInput"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="0.00"
+              value="1200"
+              class="w-full bg-transparent text-2xl font-bold text-gray-900 placeholder-gray-300 focus:outline-none"
+            />
+            <button
+              type="button"
+              id="clearBillBtn"
+              title="Clear amount"
+              class="text-gray-400 hover:text-gray-600 p-1 rounded-full transition"
+              aria-label="Clear bill amount"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Tip / Service Charge Segmented Control -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Tip / Service Tax</span>
+            <span id="tipPercentLabel" class="text-xs font-semibold text-blue-600">10%</span>
+          </div>
+          <div class="ios-segment p-1 rounded-2xl grid grid-cols-5 gap-1" role="group" aria-label="Tip percentage">
+            <button type="button" data-tip="0" class="tip-btn ios-segment-btn py-2 rounded-xl text-xs font-medium text-gray-600">0%</button>
+            <button type="button" data-tip="5" class="tip-btn ios-segment-btn py-2 rounded-xl text-xs font-medium text-gray-600">5%</button>
+            <button type="button" data-tip="10" class="tip-btn ios-segment-btn active py-2 rounded-xl text-xs font-medium">10%</button>
+            <button type="button" data-tip="15" class="tip-btn ios-segment-btn py-2 rounded-xl text-xs font-medium text-gray-600">15%</button>
+            <button type="button" data-tip="custom" id="customTipBtn" class="tip-btn ios-segment-btn py-2 rounded-xl text-xs font-medium text-gray-600">Custom</button>
+          </div>
+
+          <div id="customTipContainer" class="hidden mt-2.5 flex items-center justify-between bg-gray-100/90 rounded-2xl px-4 py-2.5">
+            <label for="customTipInput" class="text-xs font-medium text-gray-600">Custom Percentage (%)</label>
+            <input
+              id="customTipInput"
+              type="number"
+              min="0"
+              max="100"
+              step="0.5"
+              value="12"
+              class="w-20 text-right bg-white rounded-xl px-2.5 py-1 text-sm font-semibold text-gray-900 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <!-- 3. Number of People Stepper -->
+        <div class="flex items-center justify-between pt-1">
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Split Between</p>
+            <p class="text-xs text-gray-500">Number of people sharing evenly</p>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-100/90 rounded-2xl p-1.5">
+            <button
+              type="button"
+              id="decreasePeopleBtn"
+              class="w-9 h-9 rounded-xl bg-white text-gray-800 font-bold text-lg shadow-sm hover:bg-gray-50 active:scale-95 transition flex items-center justify-center disabled:opacity-40"
+              aria-label="Decrease people"
+            >
+              −
+            </button>
+            <span id="peopleCountDisplay" class="w-8 text-center text-base font-bold text-gray-900">4</span>
+            <button
+              type="button"
+              id="increasePeopleBtn"
+              class="w-9 h-9 rounded-xl bg-white text-gray-800 font-bold text-lg shadow-sm hover:bg-gray-50 active:scale-95 transition flex items-center justify-center"
+              aria-label="Increase people"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Round Up Toggle (Apple Switch Style) -->
+        <div class="flex items-center justify-between pt-3 border-t border-gray-200/60">
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Round Up Per Person</p>
+            <p class="text-xs text-gray-500">No awkward change or coins</p>
+          </div>
+          <button
+            type="button"
+            id="roundUpToggle"
+            role="switch"
+            aria-checked="false"
+            class="w-12 h-7 rounded-full bg-gray-300 p-0.5 transition-colors duration-200 focus:outline-none flex items-center"
+          >
+            <span id="roundUpKnob" class="w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-200 translate-x-0"></span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- Action Buttons (Copy Share Summary + Reset) -->
+      <section class="flex items-center gap-3">
+        <button
+          type="button"
+          id="copySummaryBtn"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-sm py-3.5 px-5 rounded-2xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span id="copyBtnText">Copy Split Summary</span>
+        </button>
+
+        <button
+          type="button"
+          id="resetAllBtn"
+          class="bg-white/90 hover:bg-white text-gray-700 font-semibold text-sm py-3.5 px-4 rounded-2xl border border-gray-200/80 shadow-sm active:scale-95 transition"
+        >
+          Reset
+        </button>
+      </section>
+
+    </div>
+
+    <!-- Beginner Code Inspector Accordion -->
+    <section class="ios-card rounded-2xl p-4">
+      <button
+        type="button"
+        id="toggleExplainBtn"
+        class="w-full flex items-center justify-between text-left text-xs font-semibold text-gray-700"
+      >
+        <span>💡 How Step 1 Works Under the Hood</span>
+        <span id="explainChevron" class="text-gray-400 transition-transform duration-200">▼</span>
+      </button>
+      <div id="explainPanel" class="hidden mt-3 pt-3 border-t border-gray-200/60 text-xs text-gray-600 space-y-2 leading-relaxed">
+        <p><strong class="text-gray-900">1. Multi-Trip Workspaces:</strong> The app stores a dictionary of trips (<code class="bg-gray-100 px-1 py-0.5 rounded">tripsById</code>) so switching between <em>Dinner Night</em>, <em>Goa Trip</em>, and <em>Roommates</em> loads each group's own members, expenses, and settlements.</p>
+        <p><strong class="text-gray-900">2. Live Spotlight Filter:</strong> Typing in the search box or clicking a category pill filters the <code class="bg-gray-100 px-1 py-0.5 rounded">expenses</code> array in real time and calculates the matching subtotal.</p>
+        <p><strong class="text-gray-900">3. Complete Persistence:</strong> Every trip tab, dark mode preference, and custom split is saved automatically in <code class="bg-gray-100 px-1 py-0.5 rounded">localStorage</code>.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Step 4: Apple Wallet–Style Receipt Modal -->
+  <div
+    id="receiptModalOverlay"
+    class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="receiptModalTitle"
+  >
+    <div class="ios-card w-full max-w-md rounded-3xl p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-gray-200/60 pb-3">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Apple Wallet Style Summary</p>
+          <h3 id="receiptModalTitle" class="text-lg font-bold text-gray-900">Group Trip Receipt</h3>
+        </div>
+        <button
+          type="button"
+          id="closeReceiptModalBtn"
+          class="w-8 h-8 rounded-full bg-gray-200/70 hover:bg-gray-300/70 text-gray-700 font-bold flex items-center justify-center transition"
+          aria-label="Close receipt modal"
+        >
+          ×
+        </button>
+      </div>
+
+      <div id="receiptModalBody" class="space-y-3 text-xs"></div>
+
+      <div class="pt-3 border-t border-gray-200/60 flex items-center gap-2">
+        <button
+          type="button"
+          id="modalDownloadCsvBtn"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition"
+        >
+          ⬇ Download CSV Spreadsheet
+        </button>
+        <button
+          type="button"
+          id="modalPrintReceiptBtn"
+          class="bg-gray-900 hover:bg-gray-800 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition"
+        >
+          🖨 Print / PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'apple_split_app_state_v5';
+
+    // --- Avatar Color Palette (Apple Contacts Style) ---
+    const AVATAR_COLORS = [
+      'bg-blue-500',
+      'bg-emerald-500',
+      'bg-indigo-500',
+      'bg-amber-500',
+      'bg-rose-500',
+      'bg-purple-500',
+      'bg-teal-500'
+    ];
+
+    const CATEGORIES = [
+      { id: 'food', label: '🍕 Food', color: 'bg-blue-400' },
+      { id: 'travel', label: '🚕 Travel', color: 'bg-emerald-400' },
+      { id: 'stay', label: '🏨 Stay', color: 'bg-purple-400' },
+      { id: 'fun', label: '🎟️ Fun', color: 'bg-amber-400' },
+      { id: 'other', label: '🛍️ Other', color: 'bg-rose-400' }
+    ];
+
+    // --- Default Multi-Trip Datasets ---
+    function getDefaultTrips() {
+      return {
+        dinner: {
+          id: 'dinner',
+          name: '🍕 Dinner Night',
+          members: ['Aarav', 'Maya', 'Kabir'],
+          expenses: [
+            {
+              id: 'exp-1',
+              title: 'Woodfired Pizzas & Drinks',
+              category: 'food',
+              amount: 1500,
+              payer: 'Aarav',
+              splitType: 'equal',
+              participants: ['Aarav', 'Maya', 'Kabir'],
+              customShares: null
+            },
+            {
+              id: 'exp-2',
+              title: 'Dessert & Gelato',
+              category: 'food',
+              amount: 600,
+              payer: 'Maya',
+              splitType: 'equal',
+              participants: ['Aarav', 'Maya', 'Kabir'],
+              customShares: null
+            }
+          ],
+          settlements: []
+        },
+        goa: {
+          id: 'goa',
+          name: '🏖️ Goa Weekend',
+          members: ['Aarav', 'Maya', 'Kabir', 'Zoya'],
+          expenses: [
+            {
+              id: 'goa-1',
+              title: 'Beach Villa Stay (2 Nights)',
+              category: 'stay',
+              amount: 8400,
+              payer: 'Zoya',
+              splitType: 'equal',
+              participants: ['Aarav', 'Maya', 'Kabir', 'Zoya'],
+              customShares: null
+            },
+            {
+              id: 'goa-2',
+              title: 'Scooter Rentals & Fuel',
+              category: 'travel',
+              amount: 1600,
+              payer: 'Kabir',
+              splitType: 'equal',
+              participants: ['Aarav', 'Maya', 'Kabir', 'Zoya'],
+              customShares: null
+            },
+            {
+              id: 'goa-3',
+              title: 'Beach Shack Seafood Lunch',
+              category: 'food',
+              amount: 2400,
+              payer: 'Aarav',
+              splitType: 'equal',
+              participants: ['Aarav', 'Maya', 'Kabir', 'Zoya'],
+              customShares: null
+            }
+          ],
+          settlements: []
+        },
+        flat: {
+          id: 'flat',
+          name: '🏠 Roommates',
+          members: ['Aarav', 'Rohan', 'Dev'],
+          expenses: [
+            {
+              id: 'flat-1',
+              title: 'High-Speed Fiber Wi-Fi',
+              category: 'other',
+              amount: 1200,
+              payer: 'Rohan',
+              splitType: 'equal',
+              participants: ['Aarav', 'Rohan', 'Dev'],
+              customShares: null
+            },
+            {
+              id: 'flat-2',
+              title: 'Weekly Groceries & Coffee',
+              category: 'food',
+              amount: 1800,
+              payer: 'Aarav',
+              splitType: 'equal',
+              participants: ['Aarav', 'Rohan', 'Dev'],
+              customShares: null
+            }
+          ],
+          settlements: []
+        }
+      };
+    }
+
+    // --- Default App State ---
+    const state = {
+      mode: 'group',
+      currency: '₹',
+      darkMode: false,
+
+      // Step 1 Quick Calculator State
+      bill: 1200,
+      tipPercent: 10,
+      isCustomTip: false,
+      people: 4,
+      roundUp: false,
+      title: 'Pizza Night',
+
+      // Step 5 Multi-Trip State + Active Pointers
+      activeTripId: 'dinner',
+      tripsById: getDefaultTrips(),
+
+      // Active Trip Working Pointers (Synced with tripsById[activeTripId])
+      members: ['Aarav', 'Maya', 'Kabir'],
+      selectedPayer: 'Aarav',
+      selectedCategory: 'food',
+      splitType: 'equal',
+      selectedParticipants: ['Aarav', 'Maya', 'Kabir'],
+      customInputs: { Aarav: 0, Maya: 0, Kabir: 0 },
+      expenses: [],
+      settlements: [],
+
+      // Step 5 Search & Filter State
+      searchQuery: '',
+      historyCategoryFilter: 'all'
+    };
+
+    function syncActiveTripToState() {
+      const trip = state.tripsById[state.activeTripId] || Object.values(state.tripsById)[0];
+      if (!trip) return;
+      state.activeTripId = trip.id;
+      state.members = trip.members;
+      state.expenses = trip.expenses;
+      state.settlements = trip.settlements;
+      if (!state.members.includes(state.selectedPayer)) {
+        state.selectedPayer = state.members[0] || '';
+      }
+      state.selectedParticipants = [...state.members];
+      state.customInputs = {};
+      state.members.forEach((m) => {
+        state.customInputs[m] = 0;
+      });
+    }
+
+    function syncStateToActiveTrip() {
+      const trip = state.tripsById[state.activeTripId];
+      if (!trip) return;
+      trip.members = state.members;
+      trip.expenses = state.expenses;
+      trip.settlements = state.settlements;
+    }
+
+    // Load saved state from localStorage safely
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.tripsById) {
+            state.currency = parsed.currency || '₹';
+            state.darkMode = Boolean(parsed.darkMode);
+            state.tripsById = parsed.tripsById;
+            state.activeTripId = parsed.activeTripId || 'dinner';
+            syncActiveTripToState();
+            return;
+          }
+        }
+      } catch (e) {}
+      syncActiveTripToState();
+    }
+
+    function saveState() {
+      syncStateToActiveTrip();
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            currency: state.currency,
+            darkMode: state.darkMode,
+            activeTripId: state.activeTripId,
+            tripsById: state.tripsById
+          })
+        );
+      } catch (e) {}
+    }
+
+    // --- DOM Elements: Shared & Mode Switcher ---
+    const darkModeToggleBtn = document.getElementById('darkModeToggleBtn');
+    const darkModeIcon = document.getElementById('darkModeIcon');
+    const modeGroupBtn = document.getElementById('modeGroupBtn');
+    const modeQuickBtn = document.getElementById('modeQuickBtn');
+    const groupSplitView = document.getElementById('groupSplitView');
+    const quickSplitView = document.getElementById('quickSplitView');
+    const stepBadge = document.getElementById('stepBadge');
+    const headerSubtitle = document.getElementById('headerSubtitle');
+    const currencyButtons = document.querySelectorAll('.currency-btn');
+
+    // --- DOM Elements: Step 1 (Quick Split) ---
+    const heroCurrency = document.getElementById('heroCurrency');
+    const inputCurrencySymbol = document.getElementById('inputCurrencySymbol');
+    const perPersonDisplay = document.getElementById('perPersonDisplay');
+    const splitBadge = document.getElementById('splitBadge');
+    const billSummaryDisplay = document.getElementById('billSummaryDisplay');
+    const tipSummaryDisplay = document.getElementById('tipSummaryDisplay');
+    const totalSummaryDisplay = document.getElementById('totalSummaryDisplay');
+
+    const expenseTitleInput = document.getElementById('expenseTitleInput');
+    const billInput = document.getElementById('billInput');
+    const clearBillBtn = document.getElementById('clearBillBtn');
+
+    const tipButtons = document.querySelectorAll('.tip-btn');
+    const tipPercentLabel = document.getElementById('tipPercentLabel');
+    const customTipContainer = document.getElementById('customTipContainer');
+    const customTipInput = document.getElementById('customTipInput');
+
+    const decreasePeopleBtn = document.getElementById('decreasePeopleBtn');
+    const increasePeopleBtn = document.getElementById('increasePeopleBtn');
+    const peopleCountDisplay = document.getElementById('peopleCountDisplay');
+
+    const roundUpToggle = document.getElementById('roundUpToggle');
+    const roundUpKnob = document.getElementById('roundUpKnob');
+
+    const presetPizza = document.getElementById('presetPizza');
+    const presetCoffee = document.getElementById('presetCoffee');
+
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+    const copyBtnText = document.getElementById('copyBtnText');
+    const resetAllBtn = document.getElementById('resetAllBtn');
+
+    // --- DOM Elements: Step 2, 3, 4 & 5 (Group Split) ---
+    const tripTabsContainer = document.getElementById('tripTabsContainer');
+    const toggleNewGroupFormBtn = document.getElementById('toggleNewGroupFormBtn');
+    const createTripForm = document.getElementById('createTripForm');
+    const newTripNameInput = document.getElementById('newTripNameInput');
+    const activeTripHeroLabel = document.getElementById('activeTripHeroLabel');
+
+    const groupHeroCurrency = document.getElementById('groupHeroCurrency');
+    const groupTotalSpendDisplay = document.getElementById('groupTotalSpendDisplay');
+    const groupMemberCountBadge = document.getElementById('groupMemberCountBadge');
+    const groupAvgPerPersonDisplay = document.getElementById('groupAvgPerPersonDisplay');
+    const groupExpenseCountDisplay = document.getElementById('groupExpenseCountDisplay');
+    const topCategoryLabel = document.getElementById('topCategoryLabel');
+    const categoryProgressBar = document.getElementById('categoryProgressBar');
+    const categoryLegendContainer = document.getElementById('categoryLegendContainer');
+
+    const loadSampleTripBtn = document.getElementById('loadSampleTripBtn');
+    const memberPillsContainer = document.getElementById('memberPillsContainer');
+    const addMemberForm = document.getElementById('addMemberForm');
+    const newMemberInput = document.getElementById('newMemberInput');
+    const memberFeedbackMsg = document.getElementById('memberFeedbackMsg');
+
+    const addExpenseForm = document.getElementById('addExpenseForm');
+    const categoryButtonsContainer = document.getElementById('categoryButtonsContainer');
+    const groupExpenseDescInput = document.getElementById('groupExpenseDescInput');
+    const groupExpenseAmountInput = document.getElementById('groupExpenseAmountInput');
+    const expenseFormCurrency = document.getElementById('expenseFormCurrency');
+    const payerButtonsContainer = document.getElementById('payerButtonsContainer');
+    const splitTypeButtons = document.querySelectorAll('.split-type-btn');
+    const splitAmongContainer = document.getElementById('splitAmongContainer');
+    const customSplitInputsContainer = document.getElementById('customSplitInputsContainer');
+    const customSplitPromptLabel = document.getElementById('customSplitPromptLabel');
+    const customSplitStatusBadge = document.getElementById('customSplitStatusBadge');
+    const customSplitRowsContainer = document.getElementById('customSplitRowsContainer');
+    const selectAllParticipantsBtn = document.getElementById('selectAllParticipantsBtn');
+    const expenseFormError = document.getElementById('expenseFormError');
+
+    const settlementListContainer = document.getElementById('settlementListContainer');
+    const settledHistorySection = document.getElementById('settledHistorySection');
+    const settledPaymentsContainer = document.getElementById('settledPaymentsContainer');
+    const undoSettlementsBtn = document.getElementById('undoSettlementsBtn');
+    const netBalancesContainer = document.getElementById('netBalancesContainer');
+    const copyGroupSettlementBtn = document.getElementById('copyGroupSettlementBtn');
+    const toggleMathBreakdownBtn = document.getElementById('toggleMathBreakdownBtn');
+    const mathBreakdownPanel = document.getElementById('mathBreakdownPanel');
+    const mathBreakdownTableBody = document.getElementById('mathBreakdownTableBody');
+
+    const expenseSearchInput = document.getElementById('expenseSearchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const historyFilterPillsContainer = document.getElementById('historyFilterPillsContainer');
+    const filteredSubtotalBadge = document.getElementById('filteredSubtotalBadge');
+    const expenseHistoryContainer = document.getElementById('expenseHistoryContainer');
+    const clearExpensesBtn = document.getElementById('clearExpensesBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+    const openReceiptModalBtn = document.getElementById('openReceiptModalBtn');
+    const receiptModalOverlay = document.getElementById('receiptModalOverlay');
+    const closeReceiptModalBtn = document.getElementById('closeReceiptModalBtn');
+    const receiptModalBody = document.getElementById('receiptModalBody');
+    const modalDownloadCsvBtn = document.getElementById('modalDownloadCsvBtn');
+    const modalPrintReceiptBtn = document.getElementById('modalPrintReceiptBtn');
+
+    const toggleExplainBtn = document.getElementById('toggleExplainBtn');
+    const explainPanel = document.getElementById('explainPanel');
+    const explainChevron = document.getElementById('explainChevron');
+
+    // --- Helper: Format Money ---
+    function formatMoney(amount) {
+      return amount.toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function getAvatarColor(name) {
+      const idx = Math.abs(
+        name.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+      ) % AVATAR_COLORS.length;
+      return AVATAR_COLORS[idx];
+    }
+
+    function getCategoryMeta(catId) {
+      return CATEGORIES.find((c) => c.id === catId) || CATEGORIES[0];
+    }
+
+    function copyTextToClipboard(text) {
+      const fallbackCopy = (str) => {
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        document.body.removeChild(ta);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    // --- Compute Balances, Math Breakdown & Minimum Settlement Transfers ---
+    function computeGroupSettlement() {
+      const paidByPerson = {};
+      const shareByPerson = {};
+      const balances = {};
+      const categoryTotals = {};
+
+      state.members.forEach((m) => {
+        paidByPerson[m] = 0;
+        shareByPerson[m] = 0;
+        balances[m] = 0;
+      });
+
+      CATEGORIES.forEach((c) => {
+        categoryTotals[c.id] = 0;
+      });
+
+      let totalSpend = 0;
+      state.expenses.forEach((exp) => {
+        const amt = Number(exp.amount) || 0;
+        const validParticipants = (exp.participants || []).filter((p) => state.members.includes(p));
+        if (amt <= 0 || validParticipants.length === 0) return;
+
+        totalSpend += amt;
+        const catId = exp.category || 'food';
+        categoryTotals[catId] = (categoryTotals[catId] || 0) + amt;
+
+        if (balances[exp.payer] !== undefined) {
+          paidByPerson[exp.payer] += amt;
+          balances[exp.payer] += amt;
+        }
+
+        if (exp.customShares && typeof exp.customShares === 'object') {
+          validParticipants.forEach((p) => {
+            const personShare = Number(exp.customShares[p]) || 0;
+            if (balances[p] !== undefined) {
+              shareByPerson[p] += personShare;
+              balances[p] -= personShare;
+            }
+          });
+        } else {
+          const share = amt / validParticipants.length;
+          validParticipants.forEach((p) => {
+            if (balances[p] !== undefined) {
+              shareByPerson[p] += share;
+              balances[p] -= share;
+            }
+          });
+        }
+      });
+
+      // Apply recorded settlements
+      state.settlements.forEach((s) => {
+        const amt = Number(s.amount) || 0;
+        if (balances[s.from] !== undefined && balances[s.to] !== undefined) {
+          balances[s.from] += amt;
+          balances[s.to] -= amt;
+        }
+      });
+
+      // Separate into debtors (negative) and creditors (positive)
+      const debtors = [];
+      const creditors = [];
+      Object.entries(balances).forEach(([person, bal]) => {
+        if (bal < -0.01) debtors.push({ person, amount: -bal });
+        else if (bal > 0.01) creditors.push({ person, amount: bal });
+      });
+
+      debtors.sort((a, b) => b.amount - a.amount);
+      creditors.sort((a, b) => b.amount - a.amount);
+
+      const transfers = [];
+      let i = 0;
+      let j = 0;
+      while (i < debtors.length && j < creditors.length) {
+        const payment = Math.min(debtors[i].amount, creditors[j].amount);
+        if (payment > 0.01) {
+          transfers.push({
+            from: debtors[i].person,
+            to: creditors[j].person,
+            amount: payment
+          });
+        }
+        debtors[i].amount -= payment;
+        creditors[j].amount -= payment;
+        if (debtors[i].amount < 0.01) i++;
+        if (creditors[j].amount < 0.01) j++;
+      }
+
+      return { totalSpend, paidByPerson, shareByPerson, balances, transfers, categoryTotals };
+    }
+
+    // --- Update Custom Split Status Badge ---
+    function updateCustomSplitStatus() {
+      const billAmt = parseFloat(groupExpenseAmountInput.value) || 0;
+      let sum = 0;
+      state.selectedParticipants.forEach((m) => {
+        sum += parseFloat(state.customInputs[m]) || 0;
+      });
+
+      if (state.splitType === 'exact') {
+        const diff = billAmt - sum;
+        if (Math.abs(diff) < 0.01 && billAmt > 0) {
+          customSplitStatusBadge.textContent = `✓ Matches ${state.currency}${formatMoney(billAmt)}`;
+          customSplitStatusBadge.className = 'font-bold text-emerald-600';
+        } else {
+          customSplitStatusBadge.textContent = `Allocated: ${state.currency}${formatMoney(sum)} / ${state.currency}${formatMoney(billAmt)}`;
+          customSplitStatusBadge.className = 'font-bold text-amber-600';
+        }
+      } else if (state.splitType === 'percent') {
+        if (Math.abs(sum - 100) < 0.1) {
+          customSplitStatusBadge.textContent = '✓ Total: 100%';
+          customSplitStatusBadge.className = 'font-bold text-emerald-600';
+        } else {
+          customSplitStatusBadge.textContent = `Total: ${sum.toFixed(1)}% (needs 100%)`;
+          customSplitStatusBadge.className = 'font-bold text-amber-600';
+        }
+      }
+    }
+
+    // --- Render Custom Split Inputs ---
+    function renderCustomSplitInputs() {
+      const isCustom = state.splitType === 'exact' || state.splitType === 'percent';
+      customSplitInputsContainer.classList.toggle('hidden', !isCustom);
+      if (!isCustom) return;
+
+      customSplitPromptLabel.textContent =
+        state.splitType === 'exact'
+          ? `Exact amount (${state.currency}) per person:`
+          : 'Percentage (%) per person:';
+
+      customSplitRowsContainer.innerHTML = '';
+      state.selectedParticipants.forEach((member) => {
+        if (state.customInputs[member] === undefined) {
+          state.customInputs[member] = 0;
+        }
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2 bg-white/90 rounded-xl px-3 py-1.5 border border-gray-200/70';
+
+        const label = document.createElement('span');
+        label.className = 'text-xs font-semibold text-gray-800';
+        label.textContent = member;
+
+        const rightWrap = document.createElement('div');
+        rightWrap.className = 'flex items-center gap-1';
+
+        const unit = document.createElement('span');
+        unit.className = 'text-xs text-gray-400 font-semibold';
+        unit.textContent = state.splitType === 'exact' ? state.currency : '%';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.step = 'any';
+        input.value = state.customInputs[member] || '';
+        input.placeholder = '0';
+        input.className = 'w-20 text-right text-xs font-bold text-gray-900 bg-gray-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500';
+        input.addEventListener('input', (e) => {
+          state.customInputs[member] = parseFloat(e.target.value) || 0;
+          updateCustomSplitStatus();
+        });
+
+        if (state.splitType === 'exact') {
+          rightWrap.appendChild(unit);
+          rightWrap.appendChild(input);
+        } else {
+          rightWrap.appendChild(input);
+          rightWrap.appendChild(unit);
+        }
+
+        row.appendChild(label);
+        row.appendChild(rightWrap);
+        customSplitRowsContainer.appendChild(row);
+      });
+
+      updateCustomSplitStatus();
+    }
+
+    // --- Render Step 5 Trip Switcher Tabs ---
+    function renderTripTabs() {
+      tripTabsContainer.innerHTML = '';
+      const tripList = Object.values(state.tripsById);
+      tripList.forEach((trip) => {
+        const isActive = trip.id === state.activeTripId;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = isActive
+          ? 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm transition flex items-center gap-1.5'
+          : 'px-3 py-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200/70 transition flex items-center gap-1.5';
+        btn.innerHTML = `<span>${trip.name}</span><span class="text-[10px] opacity-75">(${trip.expenses.length})</span>`;
+        btn.addEventListener('click', () => {
+          syncStateToActiveTrip();
+          state.activeTripId = trip.id;
+          syncActiveTripToState();
+          saveState();
+          render();
+        });
+        tripTabsContainer.appendChild(btn);
+      });
+    }
+
+    // --- Render Group Split View ---
+    function renderGroupView() {
+      renderTripTabs();
+
+      const activeTrip = state.tripsById[state.activeTripId];
+      if (activeTrip) {
+        activeTripHeroLabel.textContent = `${activeTrip.name} · Total Spend`;
+      }
+
+      if (!state.members.includes(state.selectedPayer)) {
+        state.selectedPayer = state.members[0] || '';
+      }
+      state.selectedParticipants = state.selectedParticipants.filter((m) =>
+        state.members.includes(m)
+      );
+      if (state.selectedParticipants.length === 0 && state.members.length > 0) {
+        state.selectedParticipants = [...state.members];
+      }
+
+      const {
+        totalSpend,
+        paidByPerson,
+        shareByPerson,
+        balances,
+        transfers,
+        categoryTotals
+      } = computeGroupSettlement();
+
+      const memberCount = state.members.length;
+      const avgPerPerson = memberCount > 0 ? totalSpend / memberCount : 0;
+
+      // Update Hero
+      groupHeroCurrency.textContent = state.currency;
+      expenseFormCurrency.textContent = state.currency;
+      groupTotalSpendDisplay.textContent = formatMoney(totalSpend);
+      groupMemberCountBadge.textContent = memberCount === 1 ? '1 friend' : `${memberCount} friends`;
+      groupAvgPerPersonDisplay.textContent = `${state.currency}${formatMoney(avgPerPerson)}`;
+      groupExpenseCountDisplay.textContent =
+        state.expenses.length === 1 ? '1 item' : `${state.expenses.length} items`;
+
+      // Render Category Breakdown Bar
+      categoryProgressBar.innerHTML = '';
+      categoryLegendContainer.innerHTML = '';
+      if (totalSpend > 0) {
+        let topCat = CATEGORIES[0];
+        let maxAmt = -1;
+        CATEGORIES.forEach((cat) => {
+          const amt = categoryTotals[cat.id] || 0;
+          if (amt > maxAmt) {
+            maxAmt = amt;
+            topCat = cat;
+          }
+          if (amt > 0) {
+            const pct = Math.max(4, Math.round((amt / totalSpend) * 100));
+            const seg = document.createElement('div');
+            seg.className = `${cat.color} h-full transition-all duration-300`;
+            seg.style.width = `${pct}%`;
+            categoryProgressBar.appendChild(seg);
+
+            const leg = document.createElement('span');
+            leg.textContent = `${cat.label} (${Math.round((amt / totalSpend) * 100)}%)`;
+            categoryLegendContainer.appendChild(leg);
+          }
+        });
+        topCategoryLabel.textContent = `Top: ${topCat.label}`;
+      } else {
+        topCategoryLabel.textContent = 'No spend yet';
+      }
+
+      // 1. Render Member Pills
+      memberPillsContainer.innerHTML = '';
+      state.members.forEach((member) => {
+        const pill = document.createElement('div');
+        pill.className =
+          'inline-flex items-center gap-2 bg-gray-100/90 border border-gray-200/80 rounded-full pl-1.5 pr-2.5 py-1 text-xs font-semibold text-gray-800';
+
+        const avatar = document.createElement('span');
+        avatar.className = `w-6 h-6 rounded-full ${getAvatarColor(member)} text-white flex items-center justify-center text-[11px] font-bold`;
+        avatar.textContent = member.charAt(0).toUpperCase();
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = member;
+
+        pill.appendChild(avatar);
+        pill.appendChild(nameSpan);
+
+        if (state.members.length > 2) {
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'text-gray-400 hover:text-rose-600 ml-0.5 transition';
+          removeBtn.title = `Remove ${member}`;
+          removeBtn.textContent = '×';
+          removeBtn.addEventListener('click', () => {
+            state.members = state.members.filter((m) => m !== member);
+            state.expenses = state.expenses
+              .map((e) => ({
+                ...e,
+                participants: e.participants.filter((p) => p !== member)
+              }))
+              .filter((e) => e.payer !== member && e.participants.length > 0);
+            state.settlements = state.settlements.filter(
+              (s) => s.from !== member && s.to !== member
+            );
+            saveState();
+            render();
+          });
+          pill.appendChild(removeBtn);
+        }
+
+        memberPillsContainer.appendChild(pill);
+      });
+
+      // 2A. Render Category Buttons
+      categoryButtonsContainer.innerHTML = '';
+      CATEGORIES.forEach((cat) => {
+        const active = state.selectedCategory === cat.id;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = active
+          ? 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm transition'
+          : 'px-3 py-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200/70 transition';
+        btn.textContent = cat.label;
+        btn.addEventListener('click', () => {
+          state.selectedCategory = cat.id;
+          renderGroupView();
+        });
+        categoryButtonsContainer.appendChild(btn);
+      });
+
+      // 2B. Render Payer Selector Pills
+      payerButtonsContainer.innerHTML = '';
+      state.members.forEach((member) => {
+        const isSelected = state.selectedPayer === member;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = isSelected
+          ? 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-sm transition'
+          : 'px-3 py-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200/70 transition';
+        btn.textContent = member;
+        btn.addEventListener('click', () => {
+          state.selectedPayer = member;
+          renderGroupView();
+        });
+        payerButtonsContainer.appendChild(btn);
+      });
+
+      // 2C. Update Split Type Segmented Buttons
+      splitTypeButtons.forEach((btn) => {
+        const type = btn.getAttribute('data-split-type');
+        const active = type === state.splitType;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-gray-600', !active);
+      });
+
+      // 2D. Render Split-Among Multi-Select Pills
+      splitAmongContainer.innerHTML = '';
+      state.members.forEach((member) => {
+        const isIncluded = state.selectedParticipants.includes(member);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = isIncluded
+          ? 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white shadow-sm transition flex items-center gap-1'
+          : 'px-3 py-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200/70 transition flex items-center gap-1';
+        btn.innerHTML = `<span>${isIncluded ? '✓' : '+'}</span><span>${member}</span>`;
+        btn.addEventListener('click', () => {
+          if (isIncluded && state.selectedParticipants.length > 1) {
+            state.selectedParticipants = state.selectedParticipants.filter((m) => m !== member);
+          } else if (!isIncluded) {
+            state.selectedParticipants.push(member);
+          }
+          renderGroupView();
+        });
+        splitAmongContainer.appendChild(btn);
+      });
+
+      renderCustomSplitInputs();
+
+      // 3. Render Who Owes Whom (Apple Cash Style Cards + Interactive Settle Button)
+      settlementListContainer.innerHTML = '';
+      if (transfers.length === 0) {
+        const empty = document.createElement('div');
+        empty.className =
+          'bg-emerald-50/90 border border-emerald-200/70 rounded-2xl p-4 text-center text-xs font-semibold text-emerald-800';
+        empty.textContent = '🎉 Everyone is all settled up! Zero pending balances.';
+        settlementListContainer.appendChild(empty);
+      } else {
+        transfers.forEach((t) => {
+          const row = document.createElement('div');
+          row.className =
+            'flex items-center justify-between gap-2 bg-white/90 rounded-2xl p-3 border border-gray-200/80 shadow-sm';
+
+          const left = document.createElement('div');
+          left.className = 'flex items-center gap-2 min-w-0';
+          left.innerHTML = `
+            <span class="w-7 h-7 rounded-full ${getAvatarColor(t.from)} text-white flex items-center justify-center text-xs font-bold shrink-0">${t.from.charAt(0).toUpperCase()}</span>
+            <div class="truncate">
+              <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-900">
+                <span>${t.from}</span>
+                <span class="text-gray-400 font-normal">→</span>
+                <span>${t.to}</span>
+              </div>
+              <p class="text-[11px] text-gray-500">Recommended transfer</p>
+            </div>
+          `;
+
+          const right = document.createElement('div');
+          right.className = 'flex items-center gap-2 shrink-0';
+
+          const amountBadge = document.createElement('span');
+          amountBadge.className = 'text-sm font-bold text-gray-900';
+          amountBadge.textContent = `${state.currency}${formatMoney(t.amount)}`;
+
+          const settleBtn = document.createElement('button');
+          settleBtn.type = 'button';
+          settleBtn.className =
+            'bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-xl shadow-sm transition';
+          settleBtn.textContent = 'Settle ✓';
+          settleBtn.addEventListener('click', () => {
+            state.settlements.push({
+              id: 'settle-' + Date.now(),
+              from: t.from,
+              to: t.to,
+              amount: t.amount
+            });
+            saveState();
+            renderGroupView();
+          });
+
+          right.appendChild(amountBadge);
+          right.appendChild(settleBtn);
+
+          row.appendChild(left);
+          row.appendChild(right);
+          settlementListContainer.appendChild(row);
+        });
+      }
+
+      // Render Settled History if any
+      if (state.settlements.length > 0) {
+        settledHistorySection.classList.remove('hidden');
+        settledPaymentsContainer.innerHTML = '';
+        state.settlements.forEach((s) => {
+          const item = document.createElement('div');
+          item.className =
+            'flex items-center justify-between text-xs bg-emerald-50/70 text-emerald-900 px-3 py-1.5 rounded-xl border border-emerald-200/50';
+          item.innerHTML = `
+            <span>✓ <strong>${s.from}</strong> paid <strong>${s.to}</strong></span>
+            <span class="font-bold">${state.currency}${formatMoney(s.amount)}</span>
+          `;
+          settledPaymentsContainer.appendChild(item);
+        });
+      } else {
+        settledHistorySection.classList.add('hidden');
+      }
+
+      // 4. Render Net Balances & Math Breakdown Table
+      netBalancesContainer.innerHTML = '';
+      mathBreakdownTableBody.innerHTML = '';
+      state.members.forEach((member) => {
+        const net = balances[member] || 0;
+        const paid = paidByPerson[member] || 0;
+        const share = shareByPerson[member] || 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-gray-100/70 rounded-2xl p-2.5 text-center border border-gray-200/50';
+        const statusColor =
+          net > 0.01 ? 'text-emerald-600' : net < -0.01 ? 'text-rose-600' : 'text-gray-500';
+        const prefix = net > 0.01 ? '+' : net < -0.01 ? '−' : '';
+        const statusLabel =
+          net > 0.01 ? 'gets back' : net < -0.01 ? 'owes' : 'settled';
+
+        card.innerHTML = `
+          <p class="text-xs font-semibold text-gray-800 truncate">${member}</p>
+          <p class="text-xs font-bold ${statusColor} mt-0.5">${prefix}${state.currency}${formatMoney(Math.abs(net))}</p>
+          <p class="text-[10px] text-gray-400">${statusLabel}</p>
+        `;
+        netBalancesContainer.appendChild(card);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-1.5 font-medium text-gray-800">${member}</td>
+          <td class="py-1.5 text-right text-gray-600">${state.currency}${formatMoney(paid)}</td>
+          <td class="py-1.5 text-right text-gray-600">${state.currency}${formatMoney(share)}</td>
+          <td class="py-1.5 text-right font-bold ${statusColor}">${prefix}${state.currency}${formatMoney(Math.abs(net))}</td>
+        `;
+        mathBreakdownTableBody.appendChild(tr);
+      });
+
+      // 5. Render Step 5 Category Filter Pills + Filtered Expense History Feed
+      historyFilterPillsContainer.innerHTML = '';
+      const filterOptions = [{ id: 'all', label: 'All' }, ...CATEGORIES];
+      filterOptions.forEach((opt) => {
+        const active = state.historyCategoryFilter === opt.id;
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = active
+          ? 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-600 text-white transition'
+          : 'px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 text-gray-600 hover:bg-gray-200/70 transition';
+        pill.textContent = opt.label;
+        pill.addEventListener('click', () => {
+          state.historyCategoryFilter = opt.id;
+          renderGroupView();
+        });
+        historyFilterPillsContainer.appendChild(pill);
+      });
+
+      clearSearchBtn.classList.toggle('hidden', !state.searchQuery);
+
+      const q = state.searchQuery.toLowerCase();
+      const filteredExpenses = state.expenses.filter((exp) => {
+        const matchesCat =
+          state.historyCategoryFilter === 'all' ||
+          (exp.category || 'food') === state.historyCategoryFilter;
+        const matchesQuery =
+          !q ||
+          (exp.title || '').toLowerCase().includes(q) ||
+          (exp.payer || '').toLowerCase().includes(q);
+        return matchesCat && matchesQuery;
+      });
+
+      const filteredSubtotal = filteredExpenses.reduce(
+        (acc, e) => acc + (Number(e.amount) || 0),
+        0
+      );
+      filteredSubtotalBadge.textContent = `${filteredExpenses.length} shown · ${state.currency}${formatMoney(filteredSubtotal)}`;
+
+      expenseHistoryContainer.innerHTML = '';
+      if (filteredExpenses.length === 0) {
+        const emptyHistory = document.createElement('p');
+        emptyHistory.className = 'text-xs text-gray-400 text-center py-3';
+        emptyHistory.textContent =
+          state.expenses.length === 0
+            ? 'No expenses logged yet. Add one above!'
+            : 'No expenses match your search or filter.';
+        expenseHistoryContainer.appendChild(emptyHistory);
+      } else {
+        filteredExpenses.forEach((exp) => {
+          const catMeta = getCategoryMeta(exp.category);
+          const splitBadgeLabel =
+            exp.splitType === 'exact'
+              ? 'Exact Split'
+              : exp.splitType === 'percent'
+              ? '% Split'
+              : 'Equal Split';
+
+          const item = document.createElement('div');
+          item.className =
+            'flex items-center justify-between bg-gray-100/70 rounded-2xl px-3.5 py-2.5 border border-gray-200/50';
+
+          const left = document.createElement('div');
+          left.innerHTML = `
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white text-gray-600 border border-gray-200/60">${catMeta.label}</span>
+              <p class="text-xs font-semibold text-gray-900">${exp.title}</p>
+              <span class="text-[10px] font-medium text-blue-600">${splitBadgeLabel}</span>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-0.5">Paid by <strong class="text-gray-700">${exp.payer}</strong> · Split with ${exp.participants.join(', ')}</p>
+          `;
+
+          const right = document.createElement('div');
+          right.className = 'flex items-center gap-2.5';
+
+          const amtSpan = document.createElement('span');
+          amtSpan.className = 'text-xs font-bold text-gray-900';
+          amtSpan.textContent = `${state.currency}${formatMoney(exp.amount)}`;
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'text-gray-400 hover:text-rose-600 text-sm font-bold px-1 transition';
+          delBtn.title = 'Delete expense';
+          delBtn.textContent = '×';
+          delBtn.addEventListener('click', () => {
+            state.expenses = state.expenses.filter((e) => e.id !== exp.id);
+            saveState();
+            renderGroupView();
+          });
+
+          right.appendChild(amtSpan);
+          right.appendChild(delBtn);
+
+          item.appendChild(left);
+          item.appendChild(right);
+          expenseHistoryContainer.appendChild(item);
+        });
+      }
+    }
+
+    // --- Core Calculation & UI Update ---
+    function render() {
+      document.body.classList.toggle('dark-theme', state.darkMode);
+      darkModeIcon.textContent = state.darkMode ? '☀️' : '🌙';
+
+      const isGroup = state.mode === 'group';
+      groupSplitView.classList.toggle('hidden', !isGroup);
+      quickSplitView.classList.toggle('hidden', isGroup);
+      modeGroupBtn.classList.toggle('active', isGroup);
+      modeGroupBtn.classList.toggle('text-gray-600', !isGroup);
+      modeQuickBtn.classList.toggle('active', !isGroup);
+      modeQuickBtn.classList.toggle('text-gray-600', isGroup);
+
+      stepBadge.textContent = isGroup ? 'Step 5' : 'Step 1';
+      headerSubtitle.textContent = isGroup
+        ? 'Multi-Trip Workspaces & Spotlight Search'
+        : 'Quick Bill & Tip Calculator';
+
+      currencyButtons.forEach((btn) => {
+        const sym = btn.getAttribute('data-currency');
+        const active = sym === state.currency;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-gray-600', !active);
+      });
+
+      // Step 1 Quick Calculator Render
+      const cleanBill = Math.max(0, Number(state.bill) || 0);
+      const cleanTipPercent = Math.max(0, Number(state.tipPercent) || 0);
+      const tipAmount = cleanBill * (cleanTipPercent / 100);
+      const totalAmount = cleanBill + tipAmount;
+
+      let perPerson = state.people > 0 ? totalAmount / state.people : 0;
+      if (state.roundUp && perPerson > 0) {
+        perPerson = Math.ceil(perPerson);
+      }
+
+      heroCurrency.textContent = state.currency;
+      inputCurrencySymbol.textContent = state.currency;
+      perPersonDisplay.textContent = formatMoney(perPerson);
+      splitBadge.textContent = state.people === 1 ? '1 person' : `${state.people} people`;
+
+      billSummaryDisplay.textContent = `${state.currency}${formatMoney(cleanBill)}`;
+      tipSummaryDisplay.textContent = `${state.currency}${formatMoney(tipAmount)}`;
+      totalSummaryDisplay.textContent = `${state.currency}${formatMoney(totalAmount)}`;
+
+      tipPercentLabel.textContent = `${cleanTipPercent}%`;
+      tipButtons.forEach((btn) => {
+        const val = btn.getAttribute('data-tip');
+        const isActive =
+          (state.isCustomTip && val === 'custom') ||
+          (!state.isCustomTip && Number(val) === cleanTipPercent);
+        btn.classList.toggle('active', isActive);
+        btn.classList.toggle('text-gray-600', !isActive);
+      });
+
+      customTipContainer.classList.toggle('hidden', !state.isCustomTip);
+
+      peopleCountDisplay.textContent = String(state.people);
+      decreasePeopleBtn.disabled = state.people <= 1;
+
+      roundUpToggle.setAttribute('aria-checked', String(state.roundUp));
+      roundUpToggle.classList.toggle('bg-emerald-500', state.roundUp);
+      roundUpToggle.classList.toggle('bg-gray-300', !state.roundUp);
+      roundUpKnob.classList.toggle('translate-x-5', state.roundUp);
+      roundUpKnob.classList.toggle('translate-x-0', !state.roundUp);
+
+      renderGroupView();
+    }
+
+    // --- Export CSV Function ---
+    function downloadCsvReport() {
+      const activeTrip = state.tripsById[state.activeTripId];
+      const tripTitle = activeTrip ? activeTrip.name : 'Group';
+      const rows = [
+        ['Trip', 'Title', 'Category', 'Amount', 'Currency', 'Paid By', 'Split Type', 'Participants']
+      ];
+      state.expenses.forEach((exp) => {
+        rows.push([
+          `"${tripTitle.replace(/"/g, '""')}"`,
+          `"${(exp.title || '').replace(/"/g, '""')}"`,
+          exp.category || 'food',
+          exp.amount,
+          state.currency,
+          exp.payer,
+          exp.splitType || 'equal',
+          `"${(exp.participants || []).join(', ')}"`
+        ]);
+      });
+
+      const csvContent = rows.map((r) => r.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'split-group-expenses.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // --- Open Receipt Modal ---
+    function openReceiptModal() {
+      const { totalSpend, transfers } = computeGroupSettlement();
+      const activeTrip = state.tripsById[state.activeTripId];
+      const expLines = state.expenses.length
+        ? state.expenses
+            .map(
+              (e) => `
+              <div class="flex items-center justify-between py-1.5 border-b border-gray-200/50">
+                <div>
+                  <p class="font-semibold text-gray-900">${e.title}</p>
+                  <p class="text-[11px] text-gray-500">Paid by ${e.payer} (${e.splitType || 'equal'})</p>
+                </div>
+                <span class="font-bold text-gray-900">${state.currency}${formatMoney(e.amount)}</span>
+              </div>
+            `
+            )
+            .join('')
+        : '<p class="text-gray-400">No expenses logged.</p>';
+
+      const transferLines = transfers.length
+        ? transfers
+            .map(
+              (t) =>
+                `<p class="font-semibold text-gray-800">• ${t.from} pays ${t.to}: <span class="text-blue-600">${state.currency}${formatMoney(t.amount)}</span></p>`
+            )
+            .join('')
+        : '<p class="text-emerald-600 font-semibold">🎉 All balances settled!</p>';
+
+      receiptModalBody.innerHTML = `
+        <div class="bg-gray-100/80 rounded-2xl p-3 flex items-center justify-between">
+          <span class="text-gray-500 font-medium">${activeTrip ? activeTrip.name : 'Group'} Total</span>
+          <span class="text-base font-bold text-gray-900">${state.currency}${formatMoney(totalSpend)}</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">Itemized Expenses</p>
+          ${expLines}
+        </div>
+        <div class="bg-blue-50/70 rounded-2xl p-3 space-y-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-blue-700">Settlement Plan</p>
+          ${transferLines}
+        </div>
+      `;
+      receiptModalOverlay.classList.remove('hidden');
+    }
+
+    // --- Event Listeners: Step 5 Multi-Trip & Search ---
+    toggleNewGroupFormBtn.addEventListener('click', () => {
+      const isHidden = createTripForm.classList.toggle('hidden');
+      if (!isHidden) {
+        newTripNameInput.focus();
+      }
+    });
+
+    createTripForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawName = newTripNameInput.value.trim();
+      if (!rawName) return;
+
+      syncStateToActiveTrip();
+      const newId = 'trip-' + Date.now();
+      state.tripsById[newId] = {
+        id: newId,
+        name: rawName.startsWith('✨') ? rawName : `✨ ${rawName}`,
+        members: ['Aarav', 'Maya'],
+        expenses: [],
+        settlements: []
+      };
+      state.activeTripId = newId;
+      newTripNameInput.value = '';
+      createTripForm.classList.add('hidden');
+      syncActiveTripToState();
+      saveState();
+      render();
+    });
+
+    expenseSearchInput.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value.trim();
+      renderGroupView();
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      state.searchQuery = '';
+      expenseSearchInput.value = '';
+      renderGroupView();
+    });
+
+    // --- Event Listeners: Dark Mode & Mode Switching ---
+    darkModeToggleBtn.addEventListener('click', () => {
+      state.darkMode = !state.darkMode;
+      saveState();
+      render();
+    });
+
+    modeGroupBtn.addEventListener('click', () => {
+      state.mode = 'group';
+      render();
+    });
+
+    modeQuickBtn.addEventListener('click', () => {
+      state.mode = 'quick';
+      render();
+    });
+
+    // --- Event Listeners: Split Type Segmented Control ---
+    splitTypeButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.splitType = btn.getAttribute('data-split-type') || 'equal';
+        const billAmt = parseFloat(groupExpenseAmountInput.value) || 0;
+        const count = Math.max(1, state.selectedParticipants.length);
+        state.selectedParticipants.forEach((m) => {
+          if (state.splitType === 'exact') {
+            state.customInputs[m] = billAmt > 0 ? Number((billAmt / count).toFixed(2)) : 0;
+          } else if (state.splitType === 'percent') {
+            state.customInputs[m] = Number((100 / count).toFixed(1));
+          }
+        });
+        renderGroupView();
+      });
+    });
+
+    groupExpenseAmountInput.addEventListener('input', () => {
+      if (state.splitType !== 'equal') {
+        updateCustomSplitStatus();
+      }
+    });
+
+    // --- Event Listeners: Group Actions ---
+    addMemberForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawName = newMemberInput.value.trim();
+      if (!rawName) return;
+
+      const exists = state.members.some((m) => m.toLowerCase() === rawName.toLowerCase());
+      if (exists) {
+        memberFeedbackMsg.textContent = `${rawName} is already in the group.`;
+        memberFeedbackMsg.classList.remove('hidden');
+        return;
+      }
+
+      memberFeedbackMsg.classList.add('hidden');
+      state.members.push(rawName);
+      state.selectedParticipants.push(rawName);
+      newMemberInput.value = '';
+      saveState();
+      render();
+    });
+
+    selectAllParticipantsBtn.addEventListener('click', () => {
+      state.selectedParticipants = [...state.members];
+      renderGroupView();
+    });
+
+    addExpenseForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = groupExpenseDescInput.value.trim() || 'Group Expense';
+      const amount = parseFloat(groupExpenseAmountInput.value);
+
+      if (!amount || amount <= 0) {
+        expenseFormError.textContent = 'Please enter an amount greater than 0.';
+        expenseFormError.classList.remove('hidden');
+        return;
+      }
+
+      if (state.selectedParticipants.length === 0) {
+        expenseFormError.textContent = 'Select at least 1 person to split with.';
+        expenseFormError.classList.remove('hidden');
+        return;
+      }
+
+      let customShares = null;
+      if (state.splitType === 'exact') {
+        let sum = 0;
+        customShares = {};
+        state.selectedParticipants.forEach((m) => {
+          const val = Math.max(0, parseFloat(state.customInputs[m]) || 0);
+          customShares[m] = val;
+          sum += val;
+        });
+        if (Math.abs(sum - amount) > 0.05) {
+          expenseFormError.textContent = `Exact amounts add up to ${state.currency}${formatMoney(sum)}, which must match ${state.currency}${formatMoney(amount)}.`;
+          expenseFormError.classList.remove('hidden');
+          return;
+        }
+      } else if (state.splitType === 'percent') {
+        let pctSum = 0;
+        customShares = {};
+        state.selectedParticipants.forEach((m) => {
+          const pct = Math.max(0, parseFloat(state.customInputs[m]) || 0);
+          pctSum += pct;
+          customShares[m] = (amount * pct) / 100;
+        });
+        if (Math.abs(pctSum - 100) > 0.5) {
+          expenseFormError.textContent = `Percentages add up to ${pctSum.toFixed(1)}% (must total 100%).`;
+          expenseFormError.classList.remove('hidden');
+          return;
+        }
+      }
+
+      expenseFormError.classList.add('hidden');
+      state.expenses.unshift({
+        id: 'exp-' + Date.now(),
+        title,
+        category: state.selectedCategory,
+        amount,
+        payer: state.selectedPayer,
+        splitType: state.splitType,
+        participants: [...state.selectedParticipants],
+        customShares
+      });
+
+      groupExpenseDescInput.value = '';
+      groupExpenseAmountInput.value = '';
+      state.splitType = 'equal';
+      saveState();
+      renderGroupView();
+    });
+
+    undoSettlementsBtn.addEventListener('click', () => {
+      state.settlements = [];
+      saveState();
+      renderGroupView();
+    });
+
+    toggleMathBreakdownBtn.addEventListener('click', () => {
+      const isHidden = mathBreakdownPanel.classList.toggle('hidden');
+      toggleMathBreakdownBtn.textContent = isHidden
+        ? 'Show How Math Works ▼'
+        : 'Hide Math Breakdown ▲';
+    });
+
+    loadSampleTripBtn.addEventListener('click', () => {
+      state.tripsById = getDefaultTrips();
+      state.activeTripId = 'dinner';
+      syncActiveTripToState();
+      saveState();
+      render();
+    });
+
+    clearExpensesBtn.addEventListener('click', () => {
+      state.expenses = [];
+      state.settlements = [];
+      saveState();
+      renderGroupView();
+    });
+
+    exportCsvBtn.addEventListener('click', downloadCsvReport);
+    modalDownloadCsvBtn.addEventListener('click', downloadCsvReport);
+    openReceiptModalBtn.addEventListener('click', openReceiptModal);
+
+    closeReceiptModalBtn.addEventListener('click', () => {
+      receiptModalOverlay.classList.add('hidden');
+    });
+
+    receiptModalOverlay.addEventListener('click', (e) => {
+      if (e.target === receiptModalOverlay) {
+        receiptModalOverlay.classList.add('hidden');
+      }
+    });
+
+    modalPrintReceiptBtn.addEventListener('click', () => {
+      window.print();
+    });
+
+    copyGroupSettlementBtn.addEventListener('click', () => {
+      const { totalSpend, transfers } = computeGroupSettlement();
+      const activeTrip = state.tripsById[state.activeTripId];
+      const tripLabel = activeTrip ? activeTrip.name : 'Group Split';
+      const lines = transfers.length
+        ? transfers.map((t) => `• ${t.from} pays ${t.to} ${state.currency}${formatMoney(t.amount)}`)
+        : ['• Everyone is settled up!'];
+      const text = `${tripLabel} Summary (Total ${state.currency}${formatMoney(totalSpend)}):\n${lines.join('\n')}`;
+      copyTextToClipboard(text);
+      copyGroupSettlementBtn.textContent = 'Copied ✓';
+      setTimeout(() => {
+        copyGroupSettlementBtn.textContent = 'Copy Settlement';
+      }, 1800);
+    });
+
+    // --- Event Listeners: Step 1 Quick Calculator ---
+    billInput.addEventListener('input', (e) => {
+      state.bill = parseFloat(e.target.value) || 0;
+      render();
+    });
+
+    expenseTitleInput.addEventListener('input', (e) => {
+      state.title = e.target.value.trim();
+    });
+
+    clearBillBtn.addEventListener('click', () => {
+      state.bill = 0;
+      billInput.value = '';
+      billInput.focus();
+      render();
+    });
+
+    tipButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-tip');
+        if (val === 'custom') {
+          state.isCustomTip = true;
+          state.tipPercent = parseFloat(customTipInput.value) || 0;
+          render();
+          customTipInput.focus();
+        } else {
+          state.isCustomTip = false;
+          state.tipPercent = parseFloat(val) || 0;
+          render();
+        }
+      });
+    });
+
+    customTipInput.addEventListener('input', (e) => {
+      state.tipPercent = parseFloat(e.target.value) || 0;
+      render();
+    });
+
+    decreasePeopleBtn.addEventListener('click', () => {
+      if (state.people > 1) {
+        state.people -= 1;
+        render();
+      }
+    });
+
+    increasePeopleBtn.addEventListener('click', () => {
+      if (state.people < 50) {
+        state.people += 1;
+        render();
+      }
+    });
+
+    roundUpToggle.addEventListener('click', () => {
+      state.roundUp = !state.roundUp;
+      render();
+    });
+
+    currencyButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.currency = btn.getAttribute('data-currency') || '₹';
+        saveState();
+        render();
+      });
+    });
+
+    presetPizza.addEventListener('click', () => {
+      state.bill = 1200;
+      state.people = 4;
+      state.tipPercent = 10;
+      state.isCustomTip = false;
+      state.title = 'Pizza Night';
+      billInput.value = '1200';
+      expenseTitleInput.value = 'Pizza Night';
+      render();
+    });
+
+    presetCoffee.addEventListener('click', () => {
+      state.bill = 450;
+      state.people = 3;
+      state.tipPercent = 5;
+      state.isCustomTip = false;
+      state.title = 'Coffee Run';
+      billInput.value = '450';
+      expenseTitleInput.value = 'Coffee Run';
+      render();
+    });
+
+    resetAllBtn.addEventListener('click', () => {
+      state.bill = 0;
+      state.tipPercent = 10;
+      state.isCustomTip = false;
+      state.people = 2;
+      state.roundUp = false;
+      state.title = '';
+      billInput.value = '';
+      expenseTitleInput.value = '';
+      render();
+    });
+
+    copySummaryBtn.addEventListener('click', () => {
+      const cleanBill = Math.max(0, Number(state.bill) || 0);
+      const tipAmount = cleanBill * (Math.max(0, Number(state.tipPercent) || 0) / 100);
+      const totalAmount = cleanBill + tipAmount;
+      let perPerson = state.people > 0 ? totalAmount / state.people : 0;
+      if (state.roundUp && perPerson > 0) perPerson = Math.ceil(perPerson);
+
+      const label = state.title ? ` (${state.title})` : '';
+      const summaryText = `Split Summary${label}: ${state.currency}${formatMoney(perPerson)} per person (${state.people} people · Total ${state.currency}${formatMoney(totalAmount)})`;
+
+      copyTextToClipboard(summaryText);
+      copyBtnText.textContent = 'Copied to Clipboard ✓';
+      setTimeout(() => {
+        copyBtnText.textContent = 'Copy Split Summary';
+      }, 1800);
+    });
+
+    toggleExplainBtn.addEventListener('click', () => {
+      const isHidden = explainPanel.classList.toggle('hidden');
+      explainChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+
+    // Initialize App
+    loadSavedState();
+    expenseTitleInput.value = state.title;
+    render();
+  </script>
+</body>
+</html>
